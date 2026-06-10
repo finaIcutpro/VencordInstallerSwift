@@ -53,8 +53,6 @@ final class InstallerViewModel {
     var vencordDataError: String?
 
     private let githubService = GitHubService()
-    private let downloadService = VencordDownloadService()
-    private let patchService = PatchService()
     private let openAsarService = OpenAsarService()
     private var latestRelease: GitHubRelease?
 
@@ -97,13 +95,8 @@ final class InstallerViewModel {
             workingDetail: "Preparing…"
         ) {
             self.setWorkingDetail("Downloading latest builds…")
-            try await self.ensureLatestBuilds()
-            self.setWorkingDetail("Patching Discord…")
             guard let install = self.selectedInstall else { throw InstallerError.discordNotFound }
-            let updated = try await self.patchService.patch(
-                install: install,
-                patcherPath: VencordPaths.patcherPath
-            )
+            let updated = try await InstallerOperations.shared.install(install: install)
             self.applyInstallUpdate(updated)
         }
     }
@@ -115,13 +108,8 @@ final class InstallerViewModel {
             workingDetail: "Preparing…"
         ) {
             self.setWorkingDetail("Downloading latest builds…")
-            try await self.ensureLatestBuilds(force: true)
-            self.setWorkingDetail("Patching Discord…")
             guard let install = self.selectedInstall else { throw InstallerError.discordNotFound }
-            let updated = try await self.patchService.patch(
-                install: install,
-                patcherPath: VencordPaths.patcherPath
-            )
+            let updated = try await InstallerOperations.shared.repair(install: install)
             self.applyInstallUpdate(updated)
         }
     }
@@ -133,7 +121,7 @@ final class InstallerViewModel {
             workingDetail: "Restoring Discord…"
         ) {
             guard let install = self.selectedInstall else { throw InstallerError.discordNotFound }
-            let updated = try await self.patchService.unpatch(install: install)
+            let updated = try await InstallerOperations.shared.uninstall(install: install)
             self.applyInstallUpdate(updated)
         }
     }
@@ -188,6 +176,7 @@ final class InstallerViewModel {
         Task {
             do {
                 try await operation()
+                await fetchReleaseData()
                 activeAlert = .success(title, "Successfully completed for the selected Discord install.")
             } catch {
                 activeAlert = .error("Operation Failed", error.localizedDescription)
@@ -205,35 +194,6 @@ final class InstallerViewModel {
             installedHash = githubService.installedHash()
         } catch {
             // no need 2 catch here
-        }
-    }
-
-    private func ensureLatestBuilds(force: Bool = false) async throws {
-        if vencordDataError != nil {
-            throw InstallerError.vencordDataUnavailable(vencordDataError ?? "")
-        }
-
-        do {
-            try VencordPaths.ensureDistDirectory()
-        } catch {
-            vencordDataError = error.localizedDescription
-            throw InstallerError.vencordDataUnavailable(error.localizedDescription)
-        }
-
-        if latestRelease == nil {
-            latestRelease = try await githubService.fetchLatestRelease()
-            latestHash = latestRelease?.latestHash ?? latestHash
-        }
-
-        guard let release = latestRelease else {
-            throw InstallerError.githubFetchFailed("No release data available")
-        }
-
-        installedHash = githubService.installedHash()
-        if force || latestHash != installedHash {
-            setWorkingDetail("Downloading latest builds…")
-            installedHash = try await downloadService.installLatestBuilds(from: release)
-            latestHash = release.latestHash
         }
     }
 
