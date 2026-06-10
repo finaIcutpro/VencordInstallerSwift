@@ -8,6 +8,7 @@ actor InstallerOperations {
     private let patchService = PatchService()
 
     func install(install: DiscordInstall, forceDownload: Bool = false) async throws -> DiscordInstall {
+        try assertCanModify(install)
         try prepareVencordDataDirectory()
         let release = try await githubService.fetchLatestRelease()
         let installedHash = githubService.installedHash()
@@ -27,7 +28,8 @@ actor InstallerOperations {
     }
 
     func uninstall(install: DiscordInstall) async throws -> DiscordInstall {
-        try await patchService.unpatch(install: install)
+        try assertCanModify(install)
+        return try await patchService.unpatch(install: install)
     }
 
     func status() async -> (latestHash: String, installedHash: String) {
@@ -43,6 +45,15 @@ actor InstallerOperations {
             try VencordPaths.ensureDistDirectory()
         } catch {
             throw InstallerError.vencordDataUnavailable(error.localizedDescription)
+        }
+    }
+
+    private func assertCanModify(_ install: DiscordInstall) throws {
+        guard PermissionDiagnostics.canModify(install: install) else {
+            throw InstallerError.permissionDenied(
+                path: install.path.path,
+                transientLocation: PermissionDiagnostics.runningFromTransientLocation()
+            )
         }
     }
 }

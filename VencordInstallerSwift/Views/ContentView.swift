@@ -20,6 +20,19 @@ struct ContentView: View {
                 }
             }
 
+            if PermissionDiagnostics.runningFromTransientLocation() {
+                Section {
+                    Label {
+                        Text("This copy was launched from Xcode or DerivedData. macOS permission toggles won't stick — install the release app to /Applications instead.")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.orange)
+                    }
+                }
+            }
+
             DiscordInstallSection(viewModel: viewModel)
 
             Section {
@@ -73,6 +86,17 @@ struct ContentView: View {
                 )
             case .success(let title, let message):
                 Alert(title: Text(title), message: Text(message), dismissButton: .default(Text("OK")))
+            case .permissionRequired(let message):
+                Alert(
+                    title: Text("Permission Required"),
+                    message: Text(message),
+                    primaryButton: .default(Text("Open Full Disk Access")) {
+                        SystemSettingsOpener.openFullDiskAccess()
+                    },
+                    secondaryButton: .default(Text("App Management")) {
+                        SystemSettingsOpener.openAppManagement()
+                    }
+                )
             case .error(let title, let message):
                 Alert(title: Text(title), message: Text(message), dismissButton: .default(Text("OK")))
             }

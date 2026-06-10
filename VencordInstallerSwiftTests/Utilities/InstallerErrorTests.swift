@@ -8,7 +8,7 @@ struct InstallerErrorTests {
             NSError(domain: NSPOSIXErrorDomain, code: Int(EPERM)),
             path: "/Applications/Discord.app"
         )
-        guard case .permissionDenied(let path) = error else {
+        guard case .permissionDenied(let path, _) = error else {
             Issue.record("Expected permissionDenied")
             return
         }

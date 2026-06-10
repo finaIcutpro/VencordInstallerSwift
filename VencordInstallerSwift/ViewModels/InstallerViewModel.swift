@@ -4,12 +4,14 @@ import Observation
 enum AlertInfo: Identifiable {
     case success(String, String)
     case error(String, String)
+    case permissionRequired(String)
     case openAsarConfirm
 
     var id: String {
         switch self {
         case .success(let title, let message): "success-\(title)-\(message)"
         case .error(let title, let message): "error-\(title)-\(message)"
+        case .permissionRequired(let message): "permission-\(message)"
         case .openAsarConfirm: "openasar-confirm"
         }
     }
@@ -17,6 +19,7 @@ enum AlertInfo: Identifiable {
     var title: String {
         switch self {
         case .success(let title, _), .error(let title, _): title
+        case .permissionRequired: "Permission Required"
         case .openAsarConfirm: "OpenAsar"
         }
     }
@@ -24,6 +27,7 @@ enum AlertInfo: Identifiable {
     var message: String {
         switch self {
         case .success(_, let message), .error(_, let message): message
+        case .permissionRequired(let message): message
         case .openAsarConfirm:
             """
             OpenAsar is an open-source alternative of Discord desktop's app.asar.
@@ -147,6 +151,20 @@ final class InstallerViewModel {
     }
 
     func confirmOpenAsarInstall() {
+        guard let install = selectedInstall else {
+            activeAlert = .error("OpenAsar", InstallerError.discordNotFound.localizedDescription)
+            return
+        }
+        guard PermissionDiagnostics.canModify(install: install) else {
+            activeAlert = .permissionRequired(
+                InstallerError.permissionDenied(
+                    path: install.path.path,
+                    transientLocation: PermissionDiagnostics.runningFromTransientLocation()
+                ).localizedDescription ?? "Permission required."
+            )
+            return
+        }
+
         performAction(
             title: "OpenAsar Installed",
             workingTitle: "Installing OpenAsar",
@@ -178,6 +196,13 @@ final class InstallerViewModel {
                 try await operation()
                 await fetchReleaseData()
                 activeAlert = .success(title, "Successfully completed for the selected Discord install.")
+            } catch let error as InstallerError {
+                switch error {
+                case .permissionDenied(_, _):
+                    activeAlert = .permissionRequired(error.localizedDescription ?? "Permission required.")
+                default:
+                    activeAlert = .error("Operation Failed", error.localizedDescription)
+                }
             } catch {
                 activeAlert = .error("Operation Failed", error.localizedDescription)
             }

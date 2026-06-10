@@ -1,7 +1,6 @@
 import AppIntents
 import Foundation
 
-// MARK: - Entity
 
 struct DiscordInstallEntity: AppEntity {
     static var typeDisplayRepresentation = TypeDisplayRepresentation(name: "Discord Install")
@@ -54,7 +53,6 @@ enum InstallResolver {
     }
 }
 
-// MARK: - Intents
 
 struct InstallVencordIntent: AppIntent {
     static var title: LocalizedStringResource = "Install Vencord"
@@ -138,7 +136,6 @@ struct ListDiscordInstallsIntent: AppIntent {
     }
 }
 
-// MARK: - Shortcuts
 
 struct VencordInstallerShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {

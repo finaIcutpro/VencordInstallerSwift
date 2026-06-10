@@ -25,7 +25,16 @@ Get the latest release from [GitHub Releases](https://github.com/finaIcutpro/Ven
 
 - macOS 14.0 or later
 - An existing Discord installation
-- Full Disk Access may be required if Discord is installed in `/Applications`
+- **Full Disk Access** or **App Management** permission (required to patch Discord in `/Applications`)
+
+### macOS blocked the installer?
+
+Discord is a protected app. If repair/install fails or the **App Management** toggle keeps turning off:
+
+1. **Quit Discord** and **quit the installer** (⌘Q)
+2. Open **System Settings → Privacy & Security → Full Disk Access**
+3. Add **Vencord Installer** and enable it (this is more reliable than App Management alone)
+4. Reopen the installer from `/Applications` and try again
 
 ## Build from source
 
