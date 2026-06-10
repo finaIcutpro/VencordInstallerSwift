@@ -7,8 +7,8 @@ actor InstallerOperations {
     private let downloadService = VencordDownloadService()
     private let patchService = PatchService()
 
-    func install(install: DiscordInstall, forceDownload: Bool = false) async throws -> DiscordInstall {
-        try assertCanModify(install)
+    func install(install discordInstall: DiscordInstall, forceDownload: Bool = false) async throws -> DiscordInstall {
+        try assertCanModify(discordInstall)
         try prepareVencordDataDirectory()
         let release = try await githubService.fetchLatestRelease()
         let installedHash = githubService.installedHash()
@@ -18,18 +18,18 @@ actor InstallerOperations {
         }
 
         return try await patchService.patch(
-            install: install,
+            install: discordInstall,
             patcherPath: VencordPaths.patcherPath
         )
     }
 
-    func repair(install: DiscordInstall) async throws -> DiscordInstall {
-        try await install(install: install, forceDownload: true)
+    func repair(install discordInstall: DiscordInstall) async throws -> DiscordInstall {
+        try await install(install: discordInstall, forceDownload: true)
     }
 
-    func uninstall(install: DiscordInstall) async throws -> DiscordInstall {
-        try assertCanModify(install)
-        return try await patchService.unpatch(install: install)
+    func uninstall(install discordInstall: DiscordInstall) async throws -> DiscordInstall {
+        try assertCanModify(discordInstall)
+        return try await patchService.unpatch(install: discordInstall)
     }
 
     func status() async -> (latestHash: String, installedHash: String) {
@@ -48,10 +48,10 @@ actor InstallerOperations {
         }
     }
 
-    private func assertCanModify(_ install: DiscordInstall) throws {
-        guard PermissionDiagnostics.canModify(install: install) else {
+    private func assertCanModify(_ discordInstall: DiscordInstall) throws {
+        guard PermissionDiagnostics.canModify(install: discordInstall) else {
             throw InstallerError.permissionDenied(
-                path: install.path.path,
+                path: discordInstall.path.path,
                 transientLocation: PermissionDiagnostics.runningFromTransientLocation()
             )
         }
