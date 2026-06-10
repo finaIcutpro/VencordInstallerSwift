@@ -6,9 +6,7 @@ struct DiscordInstallSection: View {
     @State private var isImporterPresented = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            installerSectionHeader("Discord Install")
-
+        Section("Discord Install") {
             if viewModel.discords.isEmpty && viewModel.customPath == nil {
                 Text("No Discord installs found in /Applications or ~/Applications.")
                     .foregroundStyle(.secondary)
@@ -37,8 +35,6 @@ struct DiscordInstallSection: View {
                 isImporterPresented = true
             }
         }
-        .padding(16)
-        .installerGlass()
         .fileImporter(
             isPresented: $isImporterPresented,
             allowedContentTypes: [UTType.applicationBundle],
@@ -57,8 +53,8 @@ struct DiscordInstallSection: View {
 }
 
 #Preview {
-    ScrollView {
+    Form {
         DiscordInstallSection(viewModel: InstallerViewModel())
-            .padding()
     }
+    .padding()
 }

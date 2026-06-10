@@ -6,7 +6,7 @@ struct LoadingOverlay: View {
 
     var body: some View {
         ZStack {
-            Color.black.opacity(0.18)
+            Color.black.opacity(0.2)
                 .ignoresSafeArea()
 
             VStack(spacing: 14) {
@@ -25,8 +25,8 @@ struct LoadingOverlay: View {
             }
             .padding(.horizontal, 28)
             .padding(.vertical, 24)
-            .installerGlass(interactive: true)
-            .shadow(color: .black.opacity(0.1), radius: 20, y: 6)
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .shadow(color: .black.opacity(0.12), radius: 16, y: 4)
         }
         .transition(.opacity)
     }
@@ -34,7 +34,7 @@ struct LoadingOverlay: View {
 
 #Preview {
     ZStack {
-        Color.gray.opacity(0.2)
+        Form { Text("Content behind overlay") }
         LoadingOverlay(title: "Repairing Vencord", detail: "Downloading latest builds…")
     }
     .frame(width: 480, height: 400)

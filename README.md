@@ -20,7 +20,6 @@ Get the latest release from [GitHub Releases](https://github.com/finaIcutpro/Ven
 - Downloads the latest Vencord build from GitHub in parallel
 - Optional [OpenAsar](https://github.com/GooseMod/OpenAsar) install/uninstall
 - Lightweight — typically ~10 MB RAM at idle
-- Auto detects when Discord updates & patches it (optional)
 
 ## Requirements
 
@@ -41,7 +40,6 @@ Discord is a protected app. If repair/install fails or the **App Management** to
 
 > [!TIP]
 > You can always build the app on your own if you wish. I do not provide support for that tho.
-
 To download the app, you can either download the DMG or Zip. Link: https://github.com/finaIcutpro/VencordInstallerSwift/releases
 
 ## License
