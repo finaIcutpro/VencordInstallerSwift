@@ -35,4 +35,4 @@ To download the app, you can either download the DMG or Zip. Link: https://githu
 
 ## License
 
-GPL-3.0 — see [LICENSE](LICENSE).
+GPL-3.0, see [LICENSE](LICENSE).
