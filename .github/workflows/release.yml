@@ -53,12 +53,16 @@ jobs:
           tag_name: ${{ env.TAG }}
           name: ${{ env.TAG }}
           generate_release_notes: true
-          files: dist/VencordInstaller.MacOS.zip
+          files: |
+            dist/VencordInstaller.MacOS.dmg
+            dist/VencordInstaller.MacOS.zip
           body: |
             ### Install
 
-            1. Download `VencordInstaller.MacOS.zip` below
-            2. Unzip and move `VencordInstaller.app` to `/Applications`
+            1. Download `VencordInstaller.MacOS.dmg` below and open it
+            2. Drag **VencordInstaller** into **Applications**
             3. Close Discord, then open the installer and patch your install
+
+            A `.zip` is also attached if you prefer that format.
 
             > This build is unsigned. On first launch, right-click the app → **Open** to bypass Gatekeeper.

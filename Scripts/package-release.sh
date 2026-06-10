@@ -13,6 +13,8 @@ DIST="$ROOT/dist"
 APP_SRC="$DERIVED_DATA/Build/Products/$CONFIGURATION/VencordInstallerSwift.app"
 APP_DST="$DIST/VencordInstaller.app"
 ZIP_PATH="$DIST/VencordInstaller.MacOS.zip"
+DMG_PATH="$DIST/VencordInstaller.MacOS.dmg"
+DMG_STAGING="$DIST/dmg-staging"
 
 cd "$ROOT"
 
@@ -42,5 +44,22 @@ ditto --norsrc --noextattr "$APP_SRC" "$APP_DST"
   zip -r -X VencordInstaller.MacOS.zip VencordInstaller.app >/dev/null
 )
 
-SIZE="$(du -h "$ZIP_PATH" | cut -f1 | xargs)"
-echo "Packaged $ZIP_PATH ($SIZE)"
+rm -rf "$DMG_STAGING"
+mkdir -p "$DMG_STAGING"
+ditto --norsrc --noextattr "$APP_DST" "$DMG_STAGING/VencordInstaller.app"
+ln -s /Applications "$DMG_STAGING/Applications"
+
+rm -f "$DMG_PATH"
+hdiutil create \
+  -volname "Vencord Installer" \
+  -srcfolder "$DMG_STAGING" \
+  -ov \
+  -format UDZO \
+  "$DMG_PATH" >/dev/null
+
+rm -rf "$DMG_STAGING"
+
+ZIP_SIZE="$(du -h "$ZIP_PATH" | cut -f1 | xargs)"
+DMG_SIZE="$(du -h "$DMG_PATH" | cut -f1 | xargs)"
+echo "Packaged $ZIP_PATH ($ZIP_SIZE)"
+echo "Packaged $DMG_PATH ($DMG_SIZE)"
