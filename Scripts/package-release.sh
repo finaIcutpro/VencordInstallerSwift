@@ -26,11 +26,8 @@ xcodebuild \
   -derivedDataPath "$DERIVED_DATA" \
   MARKETING_VERSION="$VERSION" \
   CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
-  CODE_SIGN_ENTITLEMENTS="VencordInstallerSwift/VencordInstallerSwift.entitlements" \
-  CODE_SIGN_IDENTITY="-" \
-  CODE_SIGN_STYLE=Manual \
-  CODE_SIGNING_ALLOWED=YES \
-  ENABLE_HARDENED_RUNTIME=YES \
+  CODE_SIGNING_ALLOWED=NO \
+  ENABLE_HARDENED_RUNTIME=NO \
   ARCHS="$ARCHS" \
   ONLY_ACTIVE_ARCH=NO \
   build
@@ -40,7 +37,7 @@ mkdir -p "$DIST"
 
 export COPYFILE_DISABLE=1
 ditto --norsrc --noextattr "$APP_SRC" "$APP_DST"
-codesign --force --deep --options runtime --entitlements "$ROOT/VencordInstallerSwift/VencordInstallerSwift.entitlements" --sign - "$APP_DST"
+codesign --force --deep --entitlements "$ROOT/VencordInstallerSwift/VencordInstallerSwift.entitlements" --sign - "$APP_DST"
 
 (
   cd "$DIST"

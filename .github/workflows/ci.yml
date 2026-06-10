@@ -23,5 +23,7 @@ jobs:
             -configuration Debug \
             -destination 'platform=macOS' \
             -derivedDataPath DerivedData \
+            -parallel-testing-enabled NO \
             CODE_SIGNING_ALLOWED=NO \
+            ENABLE_HARDENED_RUNTIME=NO \
             test

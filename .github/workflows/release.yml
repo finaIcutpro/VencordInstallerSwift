@@ -30,16 +30,6 @@ jobs:
             echo "TAG=${GITHUB_REF_NAME}" >> "$GITHUB_ENV"
           fi
 
-      - name: Test
-        run: |
-          xcodebuild \
-            -scheme VencordInstallerSwift \
-            -configuration Debug \
-            -destination 'platform=macOS' \
-            -derivedDataPath DerivedData \
-            CODE_SIGNING_ALLOWED=NO \
-            test
-
       - name: Package
         env:
           COPYFILE_DISABLE: 1
