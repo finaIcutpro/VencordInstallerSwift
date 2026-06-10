@@ -20,7 +20,6 @@ struct DiscordInstallSection: View {
             .pickerStyle(.radioGroup)
             .onChange(of: viewModel.selectedInstallID) { _, _ in
                 viewModel.customPath = nil
-                viewModel.updateAutoPatchWatchTarget()
             }
 
             if let customPath = viewModel.customPath,
