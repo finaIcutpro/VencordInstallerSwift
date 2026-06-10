@@ -9,8 +9,14 @@ VERSION="${VERSION:-dev}"
 BUILD_NUMBER="${BUILD_NUMBER:-0}"
 ARCHS="${ARCHS:-arm64 x86_64}"
 
+DIST="$ROOT/dist"
+APP_SRC="$DERIVED_DATA/Build/Products/$CONFIGURATION/VencordInstallerSwift.app"
+APP_DST="$DIST/VencordInstaller.app"
+ZIP_PATH="$DIST/VencordInstaller.MacOS.zip"
+
 cd "$ROOT"
 
+echo "Building ${SCHEME} ${VERSION} (${BUILD_NUMBER}) for ${ARCHS}..."
 xcodebuild \
   -scheme "$SCHEME" \
   -configuration "$CONFIGURATION" \
@@ -24,13 +30,17 @@ xcodebuild \
   ONLY_ACTIVE_ARCH=NO \
   build
 
-APP_SRC="$DERIVED_DATA/Build/Products/$CONFIGURATION/VencordInstallerSwift.app"
-APP_DST="$ROOT/dist/VencordInstaller.app"
-ZIP_PATH="$ROOT/dist/VencordInstaller.MacOS.zip"
+rm -rf "$DIST"
+mkdir -p "$DIST"
 
-rm -rf "$ROOT/dist"
-mkdir -p "$ROOT/dist"
-ditto "$APP_SRC" "$APP_DST"
-ditto -c -k --sequesterRsrc --keepParent "$APP_DST" "$ZIP_PATH"
+export COPYFILE_DISABLE=1
+ditto --norsrc --noextattr "$APP_SRC" "$APP_DST"
 
-echo "Packaged $ZIP_PATH"
+(
+  cd "$DIST"
+  rm -f VencordInstaller.MacOS.zip
+  zip -r -X VencordInstaller.MacOS.zip VencordInstaller.app >/dev/null
+)
+
+SIZE="$(du -h "$ZIP_PATH" | cut -f1 | xargs)"
+echo "Packaged $ZIP_PATH ($SIZE)"
