@@ -55,6 +55,10 @@ final class InstallerViewModel {
     var activeAlert: AlertInfo?
     var isOpenAsarInstalled = false
     var vencordDataError: String?
+    var autoRepatchEnabled = AutoPatchPreferences.isEnabled
+    var autoRelaunchDiscord = AutoPatchPreferences.relaunchDiscord
+    var launchAtLogin = AutoPatchPreferences.launchAtLogin
+    var isAutoPatching = false
 
     private let githubService = GitHubService()
     private let openAsarService = OpenAsarService()
@@ -71,9 +75,61 @@ final class InstallerViewModel {
     func load() {
         refreshDiscords()
         installedHash = githubService.installedHash()
+        configureAutoPatchCallbacks()
+        AutoPatchService.shared.syncFromPreferences()
+        autoRepatchEnabled = AutoPatchPreferences.isEnabled
+        autoRelaunchDiscord = AutoPatchPreferences.relaunchDiscord
+        launchAtLogin = AutoPatchPreferences.launchAtLogin
 
         Task {
             await fetchReleaseData()
+        }
+    }
+
+    func setAutoRepatchEnabled(_ enabled: Bool) {
+        autoRepatchEnabled = enabled
+        AutoPatchService.shared.setEnabled(enabled, for: selectedInstall)
+    }
+
+    func setAutoRelaunchDiscord(_ enabled: Bool) {
+        autoRelaunchDiscord = enabled
+        AutoPatchService.shared.setRelaunchDiscord(enabled)
+    }
+
+    func setLaunchAtLogin(_ enabled: Bool) {
+        launchAtLogin = enabled
+        AutoPatchService.shared.setLaunchAtLogin(enabled)
+    }
+
+    func updateAutoPatchWatchTarget() {
+        guard autoRepatchEnabled, let install = selectedInstall else { return }
+        AutoPatchPreferences.watch(install: install)
+        AutoPatchService.shared.syncFromPreferences()
+    }
+
+    private func configureAutoPatchCallbacks() {
+        let service = AutoPatchService.shared
+        service.onPatchStarted = { [weak self] in
+            self?.isAutoPatching = true
+            self?.workingTitle = "Re-patching Discord"
+            self?.workingDetail = "Discord updated — restoring Vencord…"
+        }
+        service.onPatchFinished = { [weak self] result in
+            guard let self else { return }
+            self.isAutoPatching = false
+            self.refreshDiscords()
+            Task { await self.fetchReleaseData() }
+            switch result {
+            case .success(let message):
+                self.activeAlert = .success("Auto-patched", message)
+            case .failure(let error):
+                if let installerError = error as? InstallerError,
+                   case .permissionDenied = installerError {
+                    self.activeAlert = .permissionRequired(error.localizedDescription)
+                } else {
+                    self.activeAlert = .error("Auto-patch Failed", error.localizedDescription)
+                }
+            }
         }
     }
 
@@ -81,6 +137,10 @@ final class InstallerViewModel {
         discords = DiscordDiscovery.findInstalls()
         if selectedInstallID == nil {
             selectedInstallID = discords.first?.id
+        }
+        if autoRepatchEnabled, let install = selectedInstall {
+            AutoPatchPreferences.watch(install: install)
+            AutoPatchService.shared.syncFromPreferences()
         }
         updateOpenAsarState()
     }
@@ -195,6 +255,9 @@ final class InstallerViewModel {
             do {
                 try await operation()
                 await fetchReleaseData()
+                if let install = self.selectedInstall, self.autoRepatchEnabled {
+                    AutoPatchService.shared.registerInstallForWatching(install)
+                }
                 activeAlert = .success(title, "Successfully completed for the selected Discord install.")
             } catch let error as InstallerError {
                 switch error {

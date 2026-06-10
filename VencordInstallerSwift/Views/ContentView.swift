@@ -56,6 +56,29 @@ struct ContentView: View {
             } header: {
                 Text("Vencord")
             }
+
+            Section {
+                Toggle("Re-patch when Discord updates", isOn: Binding(
+                    get: { viewModel.autoRepatchEnabled },
+                    set: { viewModel.setAutoRepatchEnabled($0) }
+                ))
+
+                Toggle("Relaunch Discord after auto-patch", isOn: Binding(
+                    get: { viewModel.autoRelaunchDiscord },
+                    set: { viewModel.setAutoRelaunchDiscord($0) }
+                ))
+                .disabled(!viewModel.autoRepatchEnabled)
+
+                Toggle("Launch at login", isOn: Binding(
+                    get: { viewModel.launchAtLogin },
+                    set: { viewModel.setLaunchAtLogin($0) }
+                ))
+                .disabled(!viewModel.autoRepatchEnabled)
+            } header: {
+                Text("Auto-patch")
+            } footer: {
+                Text("Watches the selected Discord install for updates. When Discord replaces app.asar, the installer quits Discord, re-patches, and optionally relaunches it. Requires Full Disk Access and the app must be running (or launch at login enabled).")
+            }
         }
         .formStyle(.grouped)
         .safeAreaInset(edge: .bottom, spacing: 0) {
@@ -63,16 +86,16 @@ struct ContentView: View {
         }
         .frame(minWidth: 480, minHeight: 520)
         .navigationTitle("Vencord Installer")
-        .disabled(viewModel.isWorking)
+        .disabled(viewModel.isWorking || viewModel.isAutoPatching)
         .overlay {
-            if viewModel.isWorking {
+            if viewModel.isWorking || viewModel.isAutoPatching {
                 LoadingOverlay(
                     title: viewModel.workingTitle,
                     detail: viewModel.workingDetail
                 )
             }
         }
-        .animation(.easeInOut(duration: 0.2), value: viewModel.isWorking)
+        .animation(.easeInOut(duration: 0.2), value: viewModel.isWorking || viewModel.isAutoPatching)
         .alert(item: $viewModel.activeAlert) { alert in
             switch alert {
             case .openAsarConfirm:
